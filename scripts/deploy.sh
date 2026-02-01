@@ -123,16 +123,78 @@ GATEWAY_TOKEN=$(openssl rand -hex 32)
 echo "$GATEWAY_TOKEN" | npx wrangler secret put MOLTBOT_GATEWAY_TOKEN
 echo -e "${GREEN}✓${NC} Gateway token generated"
 
-# Optional: Telegram
-if [ "$WITH_TELEGRAM" = true ]; then
+# Channel Setup
+echo ""
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo -e "${BLUE}                    Channel Setup                              ${NC}"
+echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
+echo ""
+echo -e "Which channels do you want to enable?"
+echo -e "  1) Telegram (recommended - easy setup)"
+echo -e "  2) Discord"
+echo -e "  3) Slack"
+echo -e "  4) Web UI only (no messaging)"
+echo ""
+read -p "Enter choices (e.g., 1 or 1,2): " CHANNEL_CHOICES
+
+# Telegram
+if [[ "$CHANNEL_CHOICES" == *"1"* ]] || [ "$WITH_TELEGRAM" = true ]; then
     echo ""
+    echo -e "${YELLOW}━━━ Telegram Setup ━━━${NC}"
+    echo -e "1. Open Telegram and message ${BLUE}@BotFather${NC}"
+    echo -e "2. Send: /newbot"
+    echo -e "3. Choose a name (e.g., 'Diya' or 'My Assistant')"
+    echo -e "4. Choose a username (must end in _bot, e.g., 'shwetha_diya_bot')"
+    echo -e "5. Copy the token BotFather gives you"
+    echo ""
+    read -p "Press Enter when ready to paste the token..."
     echo -e "${YELLOW}Enter your Telegram Bot Token:${NC}"
-    echo -e "(Get one from @BotFather on Telegram)"
     read -s -p "> " TELEGRAM_TOKEN
     echo ""
     if [ -n "$TELEGRAM_TOKEN" ]; then
         echo "$TELEGRAM_TOKEN" | npx wrangler secret put TELEGRAM_BOT_TOKEN
-        echo -e "${GREEN}✓${NC} Telegram bot token set"
+        echo -e "${GREEN}✓${NC} Telegram bot configured"
+        TELEGRAM_ENABLED=true
+    fi
+fi
+
+# Discord
+if [[ "$CHANNEL_CHOICES" == *"2"* ]]; then
+    echo ""
+    echo -e "${YELLOW}━━━ Discord Setup ━━━${NC}"
+    echo -e "1. Go to ${BLUE}https://discord.com/developers/applications${NC}"
+    echo -e "2. Create New Application → name it"
+    echo -e "3. Go to Bot → Add Bot → Copy Token"
+    echo -e "4. Enable MESSAGE CONTENT INTENT under Privileged Gateway Intents"
+    echo ""
+    read -p "Press Enter when ready to paste the token..."
+    echo -e "${YELLOW}Enter your Discord Bot Token:${NC}"
+    read -s -p "> " DISCORD_TOKEN
+    echo ""
+    if [ -n "$DISCORD_TOKEN" ]; then
+        echo "$DISCORD_TOKEN" | npx wrangler secret put DISCORD_BOT_TOKEN
+        echo -e "${GREEN}✓${NC} Discord bot configured"
+        DISCORD_ENABLED=true
+    fi
+fi
+
+# Slack
+if [[ "$CHANNEL_CHOICES" == *"3"* ]]; then
+    echo ""
+    echo -e "${YELLOW}━━━ Slack Setup ━━━${NC}"
+    echo -e "1. Go to ${BLUE}https://api.slack.com/apps${NC}"
+    echo -e "2. Create New App → From scratch"
+    echo -e "3. Add Bot Token Scopes: chat:write, im:history, im:read, im:write"
+    echo -e "4. Install to Workspace → Copy Bot User OAuth Token"
+    echo ""
+    read -p "Press Enter when ready to paste the token..."
+    echo -e "${YELLOW}Enter your Slack Bot Token (xoxb-...):${NC}"
+    read -s -p "> " SLACK_TOKEN
+    echo ""
+    if [ -n "$SLACK_TOKEN" ]; then
+        echo "$SLACK_TOKEN" | npx wrangler secret put SLACK_BOT_TOKEN
+        echo -e "${GREEN}✓${NC} Slack bot configured"
+        SLACK_ENABLED=true
     fi
 fi
 
@@ -199,11 +261,18 @@ echo ""
 echo -e "👤 ${BLUE}Admin UI:${NC}"
 echo -e "   https://${WORKER_URL}/_admin/"
 echo ""
+echo -e "${YELLOW}Channels Enabled:${NC}"
+[ "$TELEGRAM_ENABLED" = true ] && echo "  ✓ Telegram"
+[ "$DISCORD_ENABLED" = true ] && echo "  ✓ Discord"
+[ "$SLACK_ENABLED" = true ] && echo "  ✓ Slack"
+echo "  ✓ Web UI (always enabled)"
+echo ""
 echo -e "${YELLOW}Next Steps:${NC}"
 echo "1. Open the Control UI link above"
 echo "2. First load may take 1-2 min (container cold start)"
 echo "3. Visit /_admin/ to pair your device"
-echo "4. (Optional) Set up Cloudflare Access for security"
+[ "$TELEGRAM_ENABLED" = true ] && echo "4. Message your Telegram bot to start chatting!"
+echo "5. (Optional) Set up Cloudflare Access for security"
 echo ""
 echo -e "${BLUE}Docs: https://github.com/cloudflare/moltworker${NC}"
 
