@@ -72,6 +72,8 @@ npm install
 
 ### 3. Set Secrets (Minimal Required)
 
+> **⚠️ Auth Recommendation:** For Claude Code CLI integration, use a **setup-token** (long-lived, 1 year) instead of OAuth. OAuth requires constant refresh and can become unresponsive until manually fixed. Setup tokens are more reliable for always-on deployments.
+
 ```bash
 # Anthropic API Key (required)
 npx wrangler secret put ANTHROPIC_API_KEY
@@ -234,6 +236,16 @@ npm run deploy
 npx wrangler delete moltbot-sandbox
 npx wrangler r2 bucket delete moltbot-data  # if using R2
 ```
+
+## Authentication Best Practices
+
+| Method | Pros | Cons | Recommendation |
+|--------|------|------|----------------|
+| **Setup Token** | Long-lived (1 year), no refresh needed, reliable | Manual setup | ✅ **Recommended** |
+| **OAuth** | Easy initial setup | Requires constant refresh, can become unresponsive | ⚠️ Avoid for always-on |
+| **API Key** | Simple, no expiry | Direct Anthropic billing | Good alternative |
+
+For Claude Code CLI integration, **always use setup-token** over OAuth. OAuth tokens expire and require refresh cycles that can leave your deployment unresponsive until manually fixed.
 
 ## Links
 
